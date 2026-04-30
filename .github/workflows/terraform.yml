@@ -36,3 +36,9 @@ jobs:
       if: github.ref == 'refs/heads/main'
       run: terraform apply -auto-approve
       working-directory: ./environments/dev
+
+    - name: Terraform Plan
+      run: terraform plan
+      working-directory: ./environments/dev
+      env:
+        TF_LOG: DEBUG  # Esto te mostrará exactamente en qué recurso se queda trabado

@@ -1,0 +1,14 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+*.tfvars.json
+
+# Credentials
+auth.json
+*.json
+
+# Python / Docker
+__pycache__/
+.env

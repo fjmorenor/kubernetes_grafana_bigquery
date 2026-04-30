@@ -1,0 +1,38 @@
+name: 'Terraform Deploy'
+
+on:
+  push:
+    branches: [ "main" ] # Se activa cuando subas cambios a la rama main
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write' # CRÍTICO: Permite que GitHub pida el token a Google
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+        service_account: ${{ secrets.GCP_SA_EMAIL }}
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+
+    - name: Terraform Init
+      run: terraform init
+      working-directory: ./environments/dev # Donde tienes el GKE
+
+    - name: Terraform Plan
+      run: terraform plan
+      working-directory: ./environments/dev
+
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/main'
+      run: terraform apply -auto-approve
+      working-directory: ./environments/dev

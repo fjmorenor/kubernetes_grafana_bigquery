@@ -42,3 +42,8 @@ jobs:
       working-directory: ./environments/dev
       env:
         TF_LOG: DEBUG  # Esto te mostrará exactamente en qué recurso se queda trabado
+
+    - name: Terraform Plan
+      run: terraform plan
+      working-directory: ./environments/dev
+      timeout-minutes: 10 # Si tarda más de 10 min, corta la ejecución    

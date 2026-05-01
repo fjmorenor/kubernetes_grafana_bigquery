@@ -33,7 +33,8 @@ module "sa_github" {
     "roles/storage.admin",                  # Permite guardar archivos en los Buckets de DEV.
     "roles/iam.serviceAccountUser",         # Permite "actuar como" otras cuentas (necesario para GKE).
     "roles/resourcemanager.projectIamAdmin",
-     "roles/artifactregistry.admin"
+    "roles/artifactregistry.admin",
+    "roles/artifactregistry.reader"
   ]
 }
 

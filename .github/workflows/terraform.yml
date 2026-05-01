@@ -2,14 +2,19 @@ name: 'Terraform Deploy'
 
 on:
   push:
-    branches: [ "main" ] # Se activa cuando subas cambios a la rama main
+    branches: [ "main" ]
 
 jobs:
   terraform:
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
-      id-token: 'write' # CRÍTICO: Permite que GitHub pida el token a Google
+      id-token: 'write'
+
+    # Definimos las variables de entorno a nivel de JOB para que todos los pasos las usen
+    env:
+      TF_VAR_host_project_id: "zafa-host"
+      TF_VAR_project_id: "zafa-dev"
 
     steps:
     - name: Checkout
@@ -26,39 +31,19 @@ jobs:
 
     - name: Terraform Init
       run: terraform init
-      working-directory: ./environments/dev # Donde tienes el GKE
-
-    - name: Terraform Plan
-      run: terraform plan
-      working-directory: ./environments/dev
-
-    - name: Terraform Apply
-      if: github.ref == 'refs/heads/main'
-      run: terraform apply -auto-approve
       working-directory: ./environments/dev
 
     - name: Terraform Plan
-      run: terraform plan
-      working-directory: ./environments/dev
-      env:
-        TF_LOG: DEBUG  # Esto te mostrará exactamente en qué recurso se queda trabado
-
-    - name: Terraform Plan
-      run: terraform plan
-      working-directory: ./environments/dev
-      timeout-minutes: 10 # Si tarda más de 10 min, corta la ejecución    
-
-    - name: Terraform Plan
-      run: terraform plan
-      working-directory: ./environments/dev
-      env:
-        TF_LOG: DEBUG  # <--- ESTO ES CLAVE  
-
-    - name: Terraform Plan
+      # Usamos -lock=false para evitar el error 412 del bucket
       run: terraform plan -lock=false
       working-directory: ./environments/dev
+      # Si algo sale mal, que no se quede colgado 10 horas
+      timeout-minutes: 10 
 
     - name: Terraform Apply
+      # Solo se ejecuta si estamos en main
       if: github.ref == 'refs/heads/main'
-      run: terraform apply -auto-approve -lock=false # <--- TAMBIÉN AQUÍ
-      working-directory: ./environments/dev  
+      # -auto-approve para que no pida "yes" y -lock=false para el bucket
+      run: terraform apply -auto-approve -lock=false
+      working-directory: ./environments/dev
+      timeout-minutes: 20

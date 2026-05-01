@@ -11,16 +11,19 @@ jobs:
       contents: 'read'
       id-token: 'write'
 
-    # Variables de entorno globales para todo el JOB
     env:
+      # ESTO ELIMINA EL WARNING: Fuerza el uso de Node 24
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      
+      # TUS VARIABLES DE SIEMPRE
       TF_VAR_host_project_id: "zafa-host"
       TF_VAR_project_id: "zafa-dev"
-      # Nivel máximo de logs: TRACE (muestra cada llamada a la API de Google)
-      TF_LOG: TRACE
+      TF_VAR_region: "europe-west1"
+      TF_LOG: TRACE # Mantenemos esto para ver si el GKE por fin arranca
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4 # Esta versión ya es compatible si forzamos el env arriba
 
     - name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v2
@@ -31,34 +34,18 @@ jobs:
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
       with:
-        terraform_wrapper: false # Desactivamos el wrapper para ver logs puros de consola
+        terraform_wrapper: false
 
     - name: Terraform Init
-      id: init
-      run: |
-        terraform init \
-          -input=false \
-          -lock=false
+      run: terraform init -input=false -lock=false
       working-directory: ./environments/dev
 
     - name: Terraform Plan
-      id: plan
-      run: |
-        terraform plan \
-          -input=false \
-          -lock=false \
-          -no-color \
-          -detailed-exitcode || exit_code=$?
+      run: terraform plan -var-file="terraform.tfvars" -input=false -lock=false
       working-directory: ./environments/dev
-      # Si no termina en 10 minutos, cortamos para ver el log acumulado
-      timeout-minutes: 10 
+      timeout-minutes: 10
 
     - name: Terraform Apply
       if: github.ref == 'refs/heads/main'
-      run: |
-        terraform apply \
-          -auto-approve \
-          -input=false \
-          -lock=false
+      run: terraform apply -var-file="terraform.tfvars" -auto-approve -input=false -lock=false
       working-directory: ./environments/dev
-      timeout-minutes: 20

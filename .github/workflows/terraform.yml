@@ -47,3 +47,13 @@ jobs:
       run: terraform plan
       working-directory: ./environments/dev
       timeout-minutes: 10 # Si tarda más de 10 min, corta la ejecución    
+
+    - name: Terraform Plan
+      run: terraform plan
+      working-directory: ./environments/dev
+      env:
+        TF_LOG: DEBUG  # <--- ESTO ES CLAVE  
+
+    - name: Terraform Plan
+      run: terraform plan -lock=false
+      working-directory: ./environments/dev

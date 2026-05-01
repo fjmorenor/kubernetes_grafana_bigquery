@@ -70,4 +70,6 @@ module "artifact_registry" {
   source     = "../../modules/artifact-registry"
   project_id = "zafa-dev"
   region     = "europe-west1"
+
+  depends_on = [ module.iam ]
 }

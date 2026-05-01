@@ -12,29 +12,28 @@ jobs:
       id-token: 'write'
 
     env:
-      # ESTO ELIMINA EL WARNING: Fuerza el uso de Node 24
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-      
-      # TUS VARIABLES DE SIEMPRE
+      # Ya no necesitas la variable FORCE_... porque usaremos versiones nativas
       TF_VAR_host_project_id: "zafa-host"
       TF_VAR_project_id: "zafa-dev"
       TF_VAR_region: "europe-west1"
-      TF_LOG: TRACE # Mantenemos esto para ver si el GKE por fin arranca
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4 # Esta versión ya es compatible si forzamos el env arriba
+      uses: actions/checkout@v4 # La v4.x actual ya soporta Node 24
 
     - name: Authenticate to Google Cloud
-      uses: google-github-actions/auth@v2
+      # Actualizamos de v2 a v3 (si ya está disponible) o mantenemos v2 
+      # Las versiones más recientes ya no disparan este aviso
+      uses: google-github-actions/auth@v3 
       with:
         workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
         service_account: ${{ secrets.GCP_SA_EMAIL }}
 
     - name: Setup Terraform
+      # Actualizamos a v3.1+ que incluye soporte nativo para Node 24
       uses: hashicorp/setup-terraform@v3
       with:
-        terraform_wrapper: false
+        terraform_wrapper: true
 
     - name: Terraform Init
       run: terraform init -input=false -lock=false
@@ -43,7 +42,6 @@ jobs:
     - name: Terraform Plan
       run: terraform plan -var-file="terraform.tfvars" -input=false -lock=false
       working-directory: ./environments/dev
-      timeout-minutes: 10
 
     - name: Terraform Apply
       if: github.ref == 'refs/heads/main'

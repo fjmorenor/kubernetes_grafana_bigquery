@@ -11,10 +11,12 @@ jobs:
       contents: 'read'
       id-token: 'write'
 
-    # Definimos las variables de entorno a nivel de JOB para que todos los pasos las usen
+    # Variables de entorno globales para todo el JOB
     env:
       TF_VAR_host_project_id: "zafa-host"
       TF_VAR_project_id: "zafa-dev"
+      # Nivel máximo de logs: TRACE (muestra cada llamada a la API de Google)
+      TF_LOG: TRACE
 
     steps:
     - name: Checkout
@@ -28,22 +30,35 @@ jobs:
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_wrapper: false # Desactivamos el wrapper para ver logs puros de consola
 
     - name: Terraform Init
-      run: terraform init
+      id: init
+      run: |
+        terraform init \
+          -input=false \
+          -lock=false
       working-directory: ./environments/dev
 
     - name: Terraform Plan
-      # Usamos -lock=false para evitar el error 412 del bucket
-      run: terraform plan -lock=false
+      id: plan
+      run: |
+        terraform plan \
+          -input=false \
+          -lock=false \
+          -no-color \
+          -detailed-exitcode || exit_code=$?
       working-directory: ./environments/dev
-      # Si algo sale mal, que no se quede colgado 10 horas
+      # Si no termina en 10 minutos, cortamos para ver el log acumulado
       timeout-minutes: 10 
 
     - name: Terraform Apply
-      # Solo se ejecuta si estamos en main
       if: github.ref == 'refs/heads/main'
-      # -auto-approve para que no pida "yes" y -lock=false para el bucket
-      run: terraform apply -auto-approve -lock=false
+      run: |
+        terraform apply \
+          -auto-approve \
+          -input=false \
+          -lock=false
       working-directory: ./environments/dev
       timeout-minutes: 20

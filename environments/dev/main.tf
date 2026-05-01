@@ -66,3 +66,8 @@ module "gke_standard" {
   depends_on = [ module.sa_gke_nodes ]
 }
 
+module "artifact_registry" {
+  source     = "../../modules/artifact-registry"
+  project_id = "zafa-dev"
+  region     = "europe-west1"
+}

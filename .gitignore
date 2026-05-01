@@ -2,7 +2,7 @@
 .terraform/
 *.tfstate
 *.tfstate.backup
-*.tfvars
+
 *.tfvars.json
 
 # Credentials
@@ -12,3 +12,5 @@ auth.json
 # Python / Docker
 __pycache__/
 .env
+!environments/dev/terraform.tfvars
+!environments/host/terraform.tfvars

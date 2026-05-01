@@ -7,12 +7,6 @@ resource "google_container_cluster" "standard" {
     network = var.vpc_self_link
     subnetwork = var.subnet_self_link
 
-    node_config {
-      machine_type = var.machine_type
-      disk_size_gb = 20
-      disk_type = "pd-standard"
-    }
-
     networking_mode = "VPC_NATIVE"
     ip_allocation_policy {
       cluster_secondary_range_name = var.pods_range_name
@@ -40,10 +34,13 @@ resource "google_container_cluster" "standard" {
 
 
 resource "google_container_node_pool" "nodes" {
-    name = "${var.cluster_name}-pool"
-    project = var.project_id
-    location = var.region
-    cluster = google_container_cluster.standard.name
+    name       = "${var.cluster_name}-pool"
+    project    = var.project_id
+    location   = var.region
+    cluster    = google_container_cluster.standard.name # Referencia directa
+
+    # Esta dependencia asegura que el clúster esté listo antes de crear el pool
+    depends_on = [google_container_cluster.standard]
 
     autoscaling {
       min_node_count = var.min_nodes
@@ -51,14 +48,16 @@ resource "google_container_node_pool" "nodes" {
     }
 
     management {
-      auto_repair = true
+      auto_repair  = true
       auto_upgrade = true
     }
 
     node_config {
-      machine_type = var.machine_type
+      machine_type    = var.machine_type
       service_account = var.node_sa_email
-      oauth_scopes = [ "https://www.googleapis.com/auth/cloud-platform" ]
+      # Los discos se configuran aquí ahora
+      disk_size_gb    = 20
+      disk_type       = "pd-standard"
+      oauth_scopes    = [ "https://www.googleapis.com/auth/cloud-platform" ]
     }
-    
 }

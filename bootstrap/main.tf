@@ -32,7 +32,8 @@ module "sa_github" {
     "roles/compute.networkAdmin",           # Permite configurar firewalls y subredes locales en DEV.
     "roles/storage.admin",                  # Permite guardar archivos en los Buckets de DEV.
     "roles/iam.serviceAccountUser",         # Permite "actuar como" otras cuentas (necesario para GKE).
-    "roles/resourcemanager.projectIamAdmin" # Permite que GitHub asigne permisos a otros componentes en DEV.
+    "roles/resourcemanager.projectIamAdmin",
+     "roles/artifactregistry.admin"
   ]
 }
 
